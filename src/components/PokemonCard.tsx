@@ -1,4 +1,5 @@
 import { typeColors } from "../constants/typeColors";
+import { Link } from "react-router-dom";
 
 function PokemonCard(pokemon: { name: string; type: string; imgUrl: string }) {
     
@@ -13,9 +14,11 @@ function PokemonCard(pokemon: { name: string; type: string; imgUrl: string }) {
             </div>
 
             <div className="bg-white rounded-lg p-4">
-                <h2 className={`font-bold capitalize min-h-[2.5rem] ${pokemon.name.length > 12 ? "text-sm" : "text-xl"}`}>
-                    {pokemon.name}
-                </h2>
+                <Link to={`/pokemon/${pokemon.name}`}>
+                    <h2 className={`font-bold capitalize min-h-[2.5rem] ${pokemon.name.length > 12 ? "text-sm" : "text-xl"}`}>
+                        {pokemon.name}
+                    </h2>
+                </Link>
 
                 <p className={`inline-block mt-3 text-white rounded-full px-4 py-1 text-xs font-semibold capitalize ${typeColors[pokemon.type] || 'bg-gray-400'}`}>
                 {pokemon.type}

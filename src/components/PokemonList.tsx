@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import pokedexLogo from "../assets/pokedex-logo.png";
 import PokemonCard from './PokemonCard';
 import { fetchPokemonData, type Pokemon } from '../services/pokemonApi';
 import Search from './Search';
@@ -46,6 +47,9 @@ function PokemonList() {
 
   return (
     <>
+    <div>
+        <img src={pokedexLogo} alt="Pokedex" className="w-full h-18 object-contain rounded-lg mb-6"/>
+    </div>
     <Search search={search} setSearch={setSearch} />
     <Filter selectedType={selectedType} setSelectedType={setSelectedType} />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-5 max-w-3xl mx-auto">
