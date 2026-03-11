@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { typeColors } from "../constants/typeColors";
 import { parseEvolutionChain } from "../utils/parseEvolutionChain";
+import { addToTeam, isInTeam} from "../services/teamApi";
 
 function PokemonDetail() {
     const { name } = useParams();
     const [pokemon, setPokemon] = useState<any>(null);
     const [species, setSpecies] = useState<any>(null);
     const [evolutions, setEvolutions] = useState<string[]>([]);
+    const [nickname, setNickname] = useState("");
+    const [isMyTeam, setIsMyTeam] = useState(false);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -18,6 +21,9 @@ function PokemonDetail() {
                 const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
                 const data = await res.json();
                 setPokemon(data);
+
+                const exist = await isInTeam(data.id);
+                setIsMyTeam(exist);
 
                 const speciesRes = await fetch(data.species.url);
                 const speciesData = await speciesRes.json();
@@ -42,6 +48,18 @@ function PokemonDetail() {
     if (error) return <div>{error}</div>;
     if (!pokemon) return <div>Pokemon not found.</div>;
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isMyTeam) {
+            alert("This Pokémon is already in your team!");
+            return;
+        }
+        await addToTeam(pokemon.id, nickname);
+        setIsMyTeam(true);
+        setNickname("");
+        alert(`${pokemon.name} added to team with nickname "${nickname}"!`);
+    }
+
     return (
         <div className="max-w-6xl mx-auto my-12">
             <div className="flex justify-start items-center gap-5 m-4">
@@ -59,6 +77,29 @@ function PokemonDetail() {
                             <p className="italic mt-2">{species.flavor_text_entries.find((entry: any) => entry.language.name === 'en')?.flavor_text}</p>
                         </div>
                     )}
+                </div>
+                <div>
+                    {isMyTeam ? (
+                    <div className="bg-green-100 text-green-800 px-4 py-2 rounded">
+                        This Pokémon is in your team!
+                    </div>
+                    ) : (<form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                            <input
+                                type="text"
+                                placeholder="Nickname"
+                                value={nickname}
+                                onChange={(e) => setNickname(e.target.value)}
+                                className="border border-gray-300 rounded px-3 py-2"
+                            />
+
+                            <button
+                                type="submit"
+                                disabled={!nickname}
+                                className="bg-amber-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-amber-600 transition"
+                            >
+                                Add to team
+                            </button>
+                            </form>)}
                 </div>
             </div>
            <div className="flex justify-start gap-14 mx-4 my-8">
