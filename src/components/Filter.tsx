@@ -34,7 +34,7 @@ function Filter({ selectedType, setSelectedType }: FilterProps) {
             {types.map((type) => (
                 <button 
                     key={type}
-                    className={`m-1 px-4 py-1 rounded-full text-white text-xs font-semibold capitalize ${typeColors[type] || 'bg-gray-400'} ${selectedType === type ? 'ring-2 ring-offset-2 ring-blue-500' : 'opacity-80'} transition`}
+                    className={`m-1 px-4 py-1 rounded-full text-white text-xs font-semibold capitalize cursor-pointer ${typeColors[type] || 'bg-gray-400'} ${selectedType === type ? 'ring-2 ring-offset-2 ring-blue-500' : 'opacity-80'} transition`}
                     onClick={() => setSelectedType(type)}
                 >
                     {type}

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import pokedexLogo from "../assets/pokedex-logo.png";
 import PokemonCard from './PokemonCard';
-import { fetchPokemonData, type Pokemon } from '../services/pokemonApi';
+import { fetchPokemonByType, fetchPokemonData, type Pokemon } from '../services/pokemonApi';
 import Search from './Search';
 import Filter from './Filter';
 import { filterPokemon } from '../utils/filterPokemon';
@@ -19,18 +19,29 @@ function PokemonList() {
     const limit = 200;
     const ITEMS_PER_PAGE = 20;
 
-    const filteredPokemon = filterPokemon(pokemonList, search, selectedType);
+    const filteredPokemon = filterPokemon(pokemonList, search);
     const paginatedPokemon = filteredPokemon.slice(
         page * ITEMS_PER_PAGE,
         page * ITEMS_PER_PAGE + ITEMS_PER_PAGE
     );
 
+    const totalPages = Math.ceil(filteredPokemon.length / ITEMS_PER_PAGE);
+
     
     useEffect(() => {
+        setLoading(true);  
+        setError(null);
+
         const loadPokemon = async () => {
             try {
-                const data = await fetchPokemonData(page, limit);
-                setPokemonList(data);
+                if (selectedType === "all") {
+                    const data = await fetchPokemonData(0, limit);
+                    setPokemonList(data);
+
+                } else {
+                    const data = await fetchPokemonByType(selectedType);
+                    setPokemonList(data);
+                }
             } catch {
                 setError('Failed to load Pokemon data.');
             } finally {
@@ -40,7 +51,11 @@ function PokemonList() {
         };
 
         loadPokemon();
-    }, [page]);
+    }, [selectedType]);
+
+    useEffect(() => {
+    setPage(0);
+}, [selectedType]);
 
     if(loading) { return <p>Loading...</p> }
     if(error) { return <p>{error}</p> }
@@ -73,6 +88,7 @@ function PokemonList() {
         <button
             className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50 cursor-pointer"
             onClick={() => setPage((prev) => prev + 1)}
+            disabled={page >= totalPages - 1}
         >
             Next
         </button>   

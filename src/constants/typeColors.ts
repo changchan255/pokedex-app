@@ -14,7 +14,7 @@ export const typeColors :Record<string, string> = {
   rock: "bg-stone-500",
   ghost: "bg-violet-600",
   dragon: "bg-indigo-600",
-  dark: "bg-gray-800",
+  dark: "bg-gray-900",
   steel: "bg-slate-400",
   fairy: "bg-pink-300"
 };

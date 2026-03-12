@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { typeColors } from "../constants/typeColors";
 import { parseEvolutionChain } from "../utils/parseEvolutionChain";
-import { addToTeam, isInTeam} from "../services/teamApi";
+import { useTeam } from "../context/TeamContext";
+import toast from "react-hot-toast";
 
 function PokemonDetail() {
     const { name } = useParams();
@@ -10,20 +11,21 @@ function PokemonDetail() {
     const [species, setSpecies] = useState<any>(null);
     const [evolutions, setEvolutions] = useState<string[]>([]);
     const [nickname, setNickname] = useState("");
-    const [isMyTeam, setIsMyTeam] = useState(false);
+
+    const { team, addPokemon } = useTeam();
+    const isMyTeam = pokemon && team.some((p) => Number(p.pokemonId) === Number(pokemon.id));
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!name) return;
+
         const fetchPokemonDetail = async () => {
             try {
                 const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
                 const data = await res.json();
                 setPokemon(data);
-
-                const exist = await isInTeam(data.id);
-                setIsMyTeam(exist);
 
                 const speciesRes = await fetch(data.species.url);
                 const speciesData = await speciesRes.json();
@@ -48,22 +50,25 @@ function PokemonDetail() {
     if (error) return <div>{error}</div>;
     if (!pokemon) return <div>Pokemon not found.</div>;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         if (isMyTeam) {
-            alert("This Pokémon is already in your team!");
+            toast.error("This Pokémon is already in your team!");
             return;
         }
-        await addToTeam(pokemon.id, nickname);
-        setIsMyTeam(true);
-        setNickname("");
-        alert(`${pokemon.name} added to team with nickname "${nickname}"!`);
+
+        try {
+            await addPokemon(pokemon.id, nickname);
+            toast.success(`${pokemon.name} added to team with nickname "${nickname}"!`);
+            setNickname("");
+        } catch (error) {
+            toast.error("Failed to add Pokémon to team.");
+        }     
     }
 
     return (
-        <div className="max-w-6xl mx-auto my-12">
+        <div className="max-w-6xl mx-auto my-12 text-gray-900 dark:text-gray-100">
             <div className="flex justify-start items-center gap-5 m-4">
-                <img src={pokemon.sprites.front_default} alt={pokemon.name} className="w-48 h-48 bg-amber-100 object-contain rounded-xl" />
+                <img src={pokemon.sprites.front_default} alt={pokemon.name} className="w-48 h-48 bg-amber-100 dark:bg-gray-400 object-contain rounded-xl" />
                 <div>
                     <h1 className="text-3xl font-bold capitalize">{name}</h1>
                     <div className="font-semibold">Types:
@@ -80,26 +85,30 @@ function PokemonDetail() {
                 </div>
                 <div>
                     {isMyTeam ? (
-                    <div className="bg-green-100 text-green-800 px-4 py-2 rounded">
+                    <div className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 px-4 py-2 rounded">
                         This Pokémon is in your team!
                     </div>
-                    ) : (<form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                    ) : (<div className="flex flex-col gap-3">
                             <input
                                 type="text"
                                 placeholder="Nickname"
                                 value={nickname}
                                 onChange={(e) => setNickname(e.target.value)}
-                                className="border border-gray-300 rounded px-3 py-2"
+                                className="border border-gray-300 dark:border-gray-600
+                                            bg-white dark:bg-gray-800
+                                            text-gray-900 dark:text-white
+                                            rounded px-3 py-2"
                             />
 
                             <button
-                                type="submit"
+                                type="button"
+                                onClick={handleSubmit}
                                 disabled={!nickname}
-                                className="bg-amber-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-amber-600 transition"
+                                className="bg-amber-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-amber-600 transition dark:bg-gray-600 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Add to team
                             </button>
-                            </form>)}
+                            </div>)}
                 </div>
             </div>
            <div className="flex justify-start gap-14 mx-4 my-8">
@@ -125,7 +134,7 @@ function PokemonDetail() {
                         {pokemon.abilities.map((a: any) => (
                         <span
                             key={a.ability.name}
-                            className="bg-gray-200 px-3 py-1 rounded-full text-sm capitalize"
+                            className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full text-sm capitalize"
                         >
                             {a.ability.name}
                         </span>
@@ -134,12 +143,12 @@ function PokemonDetail() {
                 </div>
             </div>
             
-            <div className="text-3xl font-bold m-4">Evolution Chain:</div>
+            <div className="text-3xl font-bold m-4">Evolution Chain</div>
             <div className="flex flex-wrap gap-2 mt-2 ml-12">
                 {evolutions.map((name) => (
                     <div key={name} className="text-center">
                         <img className="w-32 h-32 object-contain" src={`https://img.pokemondb.net/sprites/home/normal/${name}.png`} />
-                        <p className="capitalize mt-3">{name}</p>
+                        <p className="capitalize mt-3 text-gray-900 dark:text-gray-100">{name}</p>
                     </div>
                 ))}
             </div>

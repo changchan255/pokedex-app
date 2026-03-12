@@ -21,11 +21,11 @@ export async function addToTeam(pokemonId: number, nickname: string) {
 
 export async function updateTeam(id: number, pokemonId: number, nickname: string) {
     const res = await fetch(`${API}/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({pokemonId, nickname })
+        body: JSON.stringify({id, pokemonId, nickname })
     });
 
     if (!res.ok) throw new Error("Failed to update Pokémon");
