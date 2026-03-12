@@ -1,16 +1,19 @@
-import { useState } from "react";
-import { useTeam } from "../context/TeamContext";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "../store/store";
+import { fetchTeam, removePokemon, updatePokemon } from "../store/teamSlice";
 import toast from "react-hot-toast";
 
 function MyTeam() {
-    const { team, removePokemon, updatePokemon } = useTeam();
+    const dispatch = useDispatch<AppDispatch>();
+    const { team } = useSelector((state: RootState) => state.team);
 
     const [editingId, setEditingId] = useState<number | null>(null);
     const [newNickname, setNewNickname] = useState("");
 
     const handleRemove = async (id: number) => {
         try {
-            await removePokemon(id);
+            await dispatch(removePokemon(id));
             toast.success("Pokémon removed from team!");
         } catch (error) {
             toast.error("Failed to remove Pokémon from team.");
@@ -24,7 +27,13 @@ function MyTeam() {
         if (!pokemon) return;
 
         try {
-            await updatePokemon(id, pokemon.pokemonId, newNickname);
+            await dispatch(
+                updatePokemon({
+                    id,
+                    pokemonId: pokemon.pokemonId,
+                    nickname: newNickname,
+                })
+            );
             toast.success("Nickname updated!");
             setEditingId(null);
             setNewNickname("");
@@ -32,6 +41,10 @@ function MyTeam() {
             toast.error("Failed to update nickname.");
         }
     };
+
+    useEffect(() => {
+        dispatch(fetchTeam());
+    }, []);
 
     return (
         <div className="max-w-6xl mx-auto my-12 text-gray-900 dark:text-gray-100">

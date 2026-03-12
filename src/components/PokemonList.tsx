@@ -1,16 +1,20 @@
 
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import pokedexLogo from "../assets/pokedex-logo.png";
 import PokemonCard from './PokemonCard';
-import { fetchPokemonByType, fetchPokemonData, type Pokemon } from '../services/pokemonApi';
 import Search from './Search';
 import Filter from './Filter';
 import { filterPokemon } from '../utils/filterPokemon';
+import { loadPokemon, loadPokemonByType } from '../store/pokemonSlice';
+import type { AppDispatch, RootState } from '../store/store';
 
 function PokemonList() {
-    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch<AppDispatch>(); 
+
+    const { list: pokemonList, loading, error } = useSelector(
+        (state: RootState) => state.pokemon
+    );
 
     const [search, setSearch] = useState('');
     const [selectedType, setSelectedType] = useState('all');
@@ -29,29 +33,12 @@ function PokemonList() {
 
     
     useEffect(() => {
-        setLoading(true);  
-        setError(null);
-
-        const loadPokemon = async () => {
-            try {
-                if (selectedType === "all") {
-                    const data = await fetchPokemonData(0, limit);
-                    setPokemonList(data);
-
-                } else {
-                    const data = await fetchPokemonByType(selectedType);
-                    setPokemonList(data);
-                }
-            } catch {
-                setError('Failed to load Pokemon data.');
-            } finally {
-                setLoading(false);
-            }
-
-        };
-
-        loadPokemon();
-    }, [selectedType]);
+        if (selectedType === 'all') {
+            dispatch(loadPokemon({ page: 0, limit }));
+        } else {
+            dispatch(loadPokemonByType(selectedType));
+        }
+    }, [selectedType, dispatch]);
 
     useEffect(() => {
     setPage(0);

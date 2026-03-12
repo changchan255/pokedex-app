@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { typeColors } from "../constants/typeColors";
 import { parseEvolutionChain } from "../utils/parseEvolutionChain";
-import { useTeam } from "../context/TeamContext";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../store/store";
+import { addPokemon } from "../store/teamSlice";
 import toast from "react-hot-toast";
 
 function PokemonDetail() {
@@ -12,7 +14,9 @@ function PokemonDetail() {
     const [evolutions, setEvolutions] = useState<string[]>([]);
     const [nickname, setNickname] = useState("");
 
-    const { team, addPokemon } = useTeam();
+    const dispatch = useDispatch<AppDispatch>();
+    const team = useSelector((state: RootState) => state.team.team);
+
     const isMyTeam = pokemon && team.some((p) => Number(p.pokemonId) === Number(pokemon.id));
 
     const [loading, setLoading] = useState(true);
@@ -57,7 +61,12 @@ function PokemonDetail() {
         }
 
         try {
-            await addPokemon(pokemon.id, nickname);
+            await dispatch(
+                addPokemon({
+                    pokemonId: pokemon.id,
+                    nickname: nickname
+                })
+            ).unwrap();
             toast.success(`${pokemon.name} added to team with nickname "${nickname}"!`);
             setNickname("");
         } catch (error) {

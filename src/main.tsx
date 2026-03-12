@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { TeamProvider } from "./context/TeamContext";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
 import { ThemeProvider } from "./context/ThemeContext";
 import './index.css'
 import App from './App.tsx'
@@ -8,9 +9,9 @@ import App from './App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <TeamProvider>
+      <Provider store={store}>
         <App />
-    </TeamProvider>
+      </Provider>
     </ThemeProvider>
   </StrictMode>,
 )
